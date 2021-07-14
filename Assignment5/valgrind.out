@@ -1,0 +1,32 @@
+==7803== Memcheck, a memory error detector
+==7803== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==7803== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==7803== Command: ./radix 1024 4 2
+==7803== 
+==7803== 
+==7803== HEAP SUMMARY:
+==7803==     in use at exit: 72,704 bytes in 1 blocks
+==7803==   total heap usage: 3,533 allocs, 3,532 frees, 792,149 bytes allocated
+==7803== 
+==7803== 72,704 bytes in 1 blocks are still reachable in loss record 1 of 1
+==7803==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==7803==    by 0x4EDC275: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==7803==    by 0x40106F9: call_init.part.0 (dl-init.c:72)
+==7803==    by 0x401080A: call_init (dl-init.c:30)
+==7803==    by 0x401080A: _dl_init (dl-init.c:120)
+==7803==    by 0x4000C69: ??? (in /lib/x86_64-linux-gnu/ld-2.23.so)
+==7803==    by 0x3: ???
+==7803==    by 0xFFF000BD6: ???
+==7803==    by 0xFFF000BDE: ???
+==7803==    by 0xFFF000BE3: ???
+==7803==    by 0xFFF000BE5: ???
+==7803== 
+==7803== LEAK SUMMARY:
+==7803==    definitely lost: 0 bytes in 0 blocks
+==7803==    indirectly lost: 0 bytes in 0 blocks
+==7803==      possibly lost: 0 bytes in 0 blocks
+==7803==    still reachable: 72,704 bytes in 1 blocks
+==7803==         suppressed: 0 bytes in 0 blocks
+==7803== 
+==7803== For counts of detected and suppressed errors, rerun with: -v
+==7803== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

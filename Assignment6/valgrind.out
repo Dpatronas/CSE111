@@ -1,0 +1,79 @@
+==19156== Memcheck, a memory error detector
+==19156== Copyright (C) 2002-2015, and GNU GPL'd, by Julian Seward et al.
+==19156== Using Valgrind-3.11.0 and LibVEX; rerun with -h for copyright info
+==19156== Command: ./radix 32 1 1 -p
+==19156== 
+==19156== 
+==19156== HEAP SUMMARY:
+==19156==     in use at exit: 73,312 bytes in 5 blocks
+==19156==   total heap usage: 574 allocs, 569 frees, 135,057 bytes allocated
+==19156== 
+==19156== 8 bytes in 1 blocks are definitely lost in loss record 1 of 5
+==19156==    at 0x4C2E0EF: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19156==    by 0x40D067: test(int, int, bool, bool, unsigned int) (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40E493: main (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156== 
+==19156== 56 bytes in 1 blocks are still reachable in loss record 2 of 5
+==19156==    at 0x4C2E0EF: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19156==    by 0x412481: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x411FB2: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x411847: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x410F34: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x4108BB: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x4104B1: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40FEC7: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40F76D: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40EF9C: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40E83C: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40D075: test(int, int, bool, bool, unsigned int) (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156== 
+==19156== 256 bytes in 1 blocks are still reachable in loss record 3 of 5
+==19156==    at 0x4C2E0EF: operator new(unsigned long) (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19156==    by 0x409F8B: __gnu_cxx::new_allocator<unsigned int>::allocate(unsigned long, void const*) (new_allocator.h:104)
+==19156==    by 0x4091D0: std::allocator_traits<std::allocator<unsigned int> >::allocate(std::allocator<unsigned int>&, unsigned long) (alloc_traits.h:491)
+==19156==    by 0x407FDD: std::_Vector_base<unsigned int, std::allocator<unsigned int> >::_M_allocate(unsigned long) (stl_vector.h:170)
+==19156==    by 0x407DAB: void std::vector<unsigned int, std::allocator<unsigned int> >::_M_emplace_back_aux<unsigned int>(unsigned int&&) (vector.tcc:412)
+==19156==    by 0x406BF0: void std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) (vector.tcc:101)
+==19156==    by 0x405BDF: std::vector<unsigned int, std::allocator<unsigned int> >::push_back(unsigned int&&) (stl_vector.h:932)
+==19156==    by 0x403AAD: RadixServer::RadixServer(int, unsigned int) (radix.cc:183)
+==19156==    by 0x40CC61: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x41341F: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x4131EF: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x413039: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156== 
+==19156== 288 bytes in 1 blocks are possibly lost in loss record 4 of 5
+==19156==    at 0x4C2FB55: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19156==    by 0x40138E4: allocate_dtv (dl-tls.c:322)
+==19156==    by 0x40138E4: _dl_allocate_tls (dl-tls.c:539)
+==19156==    by 0x574726E: allocate_stack (allocatestack.c:588)
+==19156==    by 0x574726E: pthread_create@@GLIBC_2.2.5 (pthread_create.c:539)
+==19156==    by 0x4F0AE53: std::thread::_M_start_thread(std::shared_ptr<std::thread::_Impl_base>, void (*)()) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==19156==    by 0x40E735: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40C2B7: parallel(std::vector<std::reference_wrapper<std::vector<unsigned int, std::allocator<unsigned int> > >, std::allocator<std::reference_wrapper<std::vector<unsigned int, std::allocator<unsigned int> > > > >&, unsigned int) (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40CA88: ??? (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40D019: test(int, int, bool, bool, unsigned int) (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156==    by 0x40E493: main (in /afs/cats.ucsc.edu/users/n/dpatrona/CSE111/Assignment6/radix)
+==19156== 
+==19156== 72,704 bytes in 1 blocks are still reachable in loss record 5 of 5
+==19156==    at 0x4C2DB8F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==19156==    by 0x4EDC275: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28)
+==19156==    by 0x40106F9: call_init.part.0 (dl-init.c:72)
+==19156==    by 0x401080A: call_init (dl-init.c:30)
+==19156==    by 0x401080A: _dl_init (dl-init.c:120)
+==19156==    by 0x4000C69: ??? (in /lib/x86_64-linux-gnu/ld-2.23.so)
+==19156==    by 0x4: ???
+==19156==    by 0xFFF000BD2: ???
+==19156==    by 0xFFF000BDA: ???
+==19156==    by 0xFFF000BDD: ???
+==19156==    by 0xFFF000BDF: ???
+==19156==    by 0xFFF000BE1: ???
+==19156== 
+==19156== LEAK SUMMARY:
+==19156==    definitely lost: 8 bytes in 1 blocks
+==19156==    indirectly lost: 0 bytes in 0 blocks
+==19156==      possibly lost: 288 bytes in 1 blocks
+==19156==    still reachable: 73,016 bytes in 3 blocks
+==19156==         suppressed: 0 bytes in 0 blocks
+==19156== 
+==19156== For counts of detected and suppressed errors, rerun with: -v
+==19156== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

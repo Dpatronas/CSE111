@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - src/geom.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - geom.c<span style="font-size: 80%;"> (source / <a href="geom.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">62</td>
+            <td class="headerCovTableEntry">62</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-06-28 15:31:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &lt;stdio.h&gt;</a>
+<span class="lineNum">       2 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">       3 </span>            : #include &lt;stdbool.h&gt;
+<span class="lineNum">       4 </span>            : #include &lt;math.h&gt;
+<span class="lineNum">       5 </span>            : 
+<span class="lineNum">       6 </span>            : #include &quot;bounds.h&quot;
+<span class="lineNum">       7 </span>            : #include &quot;geom.h&quot;
+<span class="lineNum">       8 </span>            : 
+<span class="lineNum">       9 </span>            : /* Citation:
+<span class="lineNum">      10 </span>            :  Circle w/ Circle Code: Prof. Harrison Lecture 3/4 - July 23
+<span class="lineNum">      11 </span>            :  Dist between Point:    https://technotip.com/7339/c-program-to-calculate-distance-between-two-points/
+<span class="lineNum">      12 </span>            :  line intersect circle: http://csharphelper.com/blog/2014/09/determine-where-a-line-intersects-a-circle-in-c/
+<span class="lineNum">      13 </span>            :  Area of Triangle:      https://www.geeksforgeeks.org/check-whether-a-given-point-lies-inside-a-triangle-or-not/
+<span class="lineNum">      14 </span>            :  Intersecting Lines:    https://www.youtube.com/watch?v=A86COO8KC58
+<span class="lineNum">      15 </span>            :     https://github.com/bit101/CodingMath/blob/master/episode33/main_interactive.js
+<span class="lineNum">      16 </span>            : 
+<span class="lineNum">      17 </span>            :   Center of Polygon:    https://stackoverflow.com/questions/19766485/how-to-calculate-centroid-of-polygon-in-c
+<span class="lineNum">      18 </span>            :   Center of Triangle:   https://www.geeksforgeeks.org/program-to-find-the-centroid-of-the-triangle/
+<span class="lineNum">      19 </span>            : */
+<a name="20"><span class="lineNum">      20 </span>            : </a>
+<span class="lineNum">      21 </span>            : /// Generic Formula to find distance between two points
+<span class="lineNum">      22 </span><span class="lineCov">         12 : double dist_2points(Point *a, Point *b) {</span>
+<span class="lineNum">      23 </span><span class="lineCov">         12 :   return (sqrt( pow((a-&gt;x - b-&gt;x),2) + pow((a-&gt;y - b-&gt;y),2) ));</span>
+<span class="lineNum">      24 </span>            : }
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<span class="lineNum">      26 </span>            : // return true is line segments intersect
+<span class="lineNum">      27 </span><span class="lineCov">         16 : bool segmentIntersect(Point *p1, Point *p2, Point *p3, Point *p4) {</span>
+<span class="lineNum">      28 </span>            : 
+<span class="lineNum">      29 </span>            :   double A1, B1, C1, A2, B2, C2, den, intersectX, intersectY, rx0, ry0, rx1, ry1;
+<span class="lineNum">      30 </span>            : 
+<span class="lineNum">      31 </span><span class="lineCov">         16 :   A1 = p2-&gt;y - p1-&gt;y;</span>
+<span class="lineNum">      32 </span><span class="lineCov">         16 :   B1 = p1-&gt;x - p2-&gt;x;</span>
+<span class="lineNum">      33 </span><span class="lineCov">         16 :   C1 = A1 * p1-&gt;x + B1 * p1-&gt;y;</span>
+<span class="lineNum">      34 </span><span class="lineCov">         16 :   A2 = p4-&gt;y - p3-&gt;y;</span>
+<span class="lineNum">      35 </span><span class="lineCov">         16 :   B2 = p3-&gt;x - p4-&gt;x;</span>
+<span class="lineNum">      36 </span><span class="lineCov">         16 :   C2 = A2 * p3-&gt;x + B2 * p3-&gt;y;</span>
+<span class="lineNum">      37 </span><span class="lineCov">         16 :   den = A1 * B2 - A2 * B1;</span>
+<span class="lineNum">      38 </span>            : 
+<span class="lineNum">      39 </span><span class="lineCov">         16 :   intersectX = (B2 * C1 - B1 * C2) / den;</span>
+<span class="lineNum">      40 </span><span class="lineCov">         16 :   intersectY = (A1 * C2 - A2 * C1) / den;</span>
+<span class="lineNum">      41 </span><span class="lineCov">         16 :   rx0 = (intersectX - p1-&gt;x) / (p2-&gt;x - p1-&gt;x);</span>
+<span class="lineNum">      42 </span><span class="lineCov">         16 :   ry0 = (intersectY - p1-&gt;y) / (p2-&gt;y - p1-&gt;y);</span>
+<span class="lineNum">      43 </span><span class="lineCov">         16 :   rx1 = (intersectX - p3-&gt;x) / (p4-&gt;x - p3-&gt;x);</span>
+<span class="lineNum">      44 </span><span class="lineCov">         16 :   ry1 = (intersectY - p3-&gt;y) / (p4-&gt;y - p3-&gt;y);</span>
+<span class="lineNum">      45 </span>            : 
+<span class="lineNum">      46 </span><span class="lineCov">         16 :   if (((rx0 &gt;= 0 &amp;&amp; rx0 &lt;= 1) || (ry0 &gt;= 0 &amp;&amp; ry0 &lt;= 1)) &amp;&amp; </span>
+<span class="lineNum">      47 </span><span class="lineCov">          2 :       ((rx1 &gt;= 0 &amp;&amp; rx1 &lt;= 1) || (ry1 &gt;= 0 &amp;&amp; ry1 &lt;= 1))) </span>
+<span class="lineNum">      48 </span>            :   {
+<span class="lineNum">      49 </span><span class="lineCov">          2 :     return  true;</span>
+<span class="lineNum">      50 </span>            :   }
+<span class="lineNum">      51 </span><span class="lineCov">         14 :   return false;</span>
+<span class="lineNum">      52 </span>            : }
+<a name="53"><span class="lineNum">      53 </span>            : </a>
+<span class="lineNum">      54 </span>            : // Returns true if a line intersects or is tangential to a circle   // Circle in Polygon Test
+<span class="lineNum">      55 </span><span class="lineCov">          6 : bool line_intersects_circle (Circle *circle, Point *p1, Point *p2) {</span>
+<span class="lineNum">      56 </span>            :   
+<span class="lineNum">      57 </span>            :   double cx, cy, dx, dy, A, B, C, det;
+<span class="lineNum">      58 </span>            : 
+<span class="lineNum">      59 </span><span class="lineCov">          6 :   cx = circle-&gt;center.x;</span>
+<span class="lineNum">      60 </span><span class="lineCov">          6 :   cy = circle-&gt;center.y;</span>
+<span class="lineNum">      61 </span>            : 
+<span class="lineNum">      62 </span><span class="lineCov">          6 :   dx = p2-&gt;x - p1-&gt;x;</span>
+<span class="lineNum">      63 </span><span class="lineCov">          6 :   dy = p2-&gt;y - p1-&gt;y;</span>
+<span class="lineNum">      64 </span>            : 
+<span class="lineNum">      65 </span><span class="lineCov">          6 :   A = (dx * dx) + (dy * dy);</span>
+<span class="lineNum">      66 </span><span class="lineCov">          6 :   B = 2 * ((dx * (p1-&gt;x - cx)) + (dy * (p1-&gt;y -cy)));</span>
+<span class="lineNum">      67 </span><span class="lineCov">          6 :   C = pow((p1-&gt;x - cx),2) + pow((p1-&gt;y - cy), 2) - pow((circle-&gt;radius),2);  //circle equation</span>
+<span class="lineNum">      68 </span>            :   
+<span class="lineNum">      69 </span><span class="lineCov">          6 :   det = B * B - 4 * A * C;</span>
+<span class="lineNum">      70 </span>            :   
+<span class="lineNum">      71 </span>            :   // No intersections
+<span class="lineNum">      72 </span><span class="lineCov">          6 :   if ((A &lt;= 0.0000001) || (det &lt; 0)) {</span>
+<span class="lineNum">      73 </span><span class="lineCov">          4 :     return false; </span>
+<span class="lineNum">      74 </span>            :   }
+<span class="lineNum">      75 </span>            :   // At least one intersection
+<span class="lineNum">      76 </span><span class="lineCov">          2 :   return true; </span>
+<span class="lineNum">      77 </span>            : }
+<a name="78"><span class="lineNum">      78 </span>            : </a>
+<span class="lineNum">      79 </span>            : // A function to calculate area of triangle
+<span class="lineNum">      80 </span><span class="lineCov">         88 : double triangle_Area(int x1, int y1, int x2, int y2, int x3, int y3) {</span>
+<span class="lineNum">      81 </span><span class="lineCov">         88 :    return abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);</span>
+<span class="lineNum">      82 </span>            : }
+<a name="83"><span class="lineNum">      83 </span>            :  </a>
+<span class="lineNum">      84 </span>            : // A function to check whether point P(x, y) lies inside a triangle
+<span class="lineNum">      85 </span><span class="lineCov">         22 : bool point_Inside_Triangle(Point *p0, Point *p1, Point *p2, Point *p3) {</span>
+<span class="lineNum">      86 </span>            :   
+<span class="lineNum">      87 </span><span class="lineCov">         22 :   double A  = triangle_Area (p1-&gt;x, p1-&gt;y, p2-&gt;x, p2-&gt;y, p3-&gt;x, p3-&gt;y);</span>
+<span class="lineNum">      88 </span><span class="lineCov">         22 :   double A1 = triangle_Area (p0-&gt;x, p0-&gt;y, p2-&gt;x, p2-&gt;y, p3-&gt;x, p3-&gt;y);</span>
+<span class="lineNum">      89 </span><span class="lineCov">         22 :   double A2 = triangle_Area (p1-&gt;x, p1-&gt;y, p0-&gt;x, p0-&gt;y, p3-&gt;x, p3-&gt;y);</span>
+<span class="lineNum">      90 </span><span class="lineCov">         22 :   double A3 = triangle_Area (p1-&gt;x, p1-&gt;y, p2-&gt;x, p2-&gt;y, p0-&gt;x, p0-&gt;y);</span>
+<span class="lineNum">      91 </span>            : 
+<span class="lineNum">      92 </span><span class="lineCov">         22 :   return (A == A1 + A2 + A3);</span>
+<span class="lineNum">      93 </span>            : }
+<a name="94"><span class="lineNum">      94 </span>            : </a>
+<span class="lineNum">      95 </span>            : // Find and return Point in the center of polygon
+<span class="lineNum">      96 </span><span class="lineCov">         32 : Point* polygon_Center(Polygon *poly) {</span>
+<span class="lineNum">      97 </span>            :   double cx, cy, t;
+<span class="lineNum">      98 </span><span class="lineCov">         32 :   double area = 0.0;</span>
+<span class="lineNum">      99 </span><span class="lineCov">         32 :   int i1 = 1;</span>
+<span class="lineNum">     100 </span>            : 
+<span class="lineNum">     101 </span><span class="lineCov">        160 :   for (int i = 0; i &lt; poly-&gt;num_vertices; i++) {</span>
+<span class="lineNum">     102 </span><span class="lineCov">        256 :     area += ((poly-&gt;vertices[i].x  * poly-&gt;vertices[i1].y) - </span>
+<span class="lineNum">     103 </span><span class="lineCov">        128 :              (poly-&gt;vertices[i1].x * poly-&gt;vertices[i].y));</span>
+<span class="lineNum">     104 </span><span class="lineCov">        128 :     i1 = (i1 + 1) % poly-&gt;num_vertices;</span>
+<span class="lineNum">     105 </span>            :   }
+<span class="lineNum">     106 </span>            : 
+<span class="lineNum">     107 </span><span class="lineCov">         32 :   area *= 0.5;</span>
+<span class="lineNum">     108 </span>            : 
+<span class="lineNum">     109 </span>            :   // Now calculate the centroid coordinates Cx and Cy
+<span class="lineNum">     110 </span><span class="lineCov">         32 :   cx = cy = 0.0;</span>
+<span class="lineNum">     111 </span><span class="lineCov">         32 :   i1 = 1;</span>
+<span class="lineNum">     112 </span><span class="lineCov">        160 :   for (int i = 0; i &lt; poly-&gt;num_vertices; i++) {</span>
+<span class="lineNum">     113 </span><span class="lineCov">        256 :     t = ((poly-&gt;vertices[i].x  * poly-&gt;vertices[i1].y) - </span>
+<span class="lineNum">     114 </span><span class="lineCov">        128 :          (poly-&gt;vertices[i1].x * poly-&gt;vertices[i].y));</span>
+<span class="lineNum">     115 </span><span class="lineCov">        128 :     cx += (poly-&gt;vertices[i].x + poly-&gt;vertices[i1].x) * t;</span>
+<span class="lineNum">     116 </span><span class="lineCov">        128 :     cy += (poly-&gt;vertices[i].y + poly-&gt;vertices[i1].y) * t;</span>
+<span class="lineNum">     117 </span><span class="lineCov">        128 :     i1 = (i1 + 1) % poly-&gt;num_vertices;</span>
+<span class="lineNum">     118 </span>            :   }
+<span class="lineNum">     119 </span><span class="lineCov">         32 :   cx /= (6.0 * area);</span>
+<span class="lineNum">     120 </span><span class="lineCov">         32 :   cy /= (6.0 * area);</span>
+<span class="lineNum">     121 </span>            : 
+<span class="lineNum">     122 </span><span class="lineCov">         32 :   Point* poly_center = (Point*)malloc( sizeof(Point));</span>
+<span class="lineNum">     123 </span>            : 
+<span class="lineNum">     124 </span><span class="lineCov">         32 :   poly_center-&gt;x = cx;</span>
+<span class="lineNum">     125 </span><span class="lineCov">         32 :   poly_center-&gt;y = cy;</span>
+<span class="lineNum">     126 </span>            : 
+<span class="lineNum">     127 </span><span class="lineCov">         32 :   return poly_center;</span>
+<span class="lineNum">     128 </span>            : }
+<span class="lineNum">     129 </span>            : 
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.12</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

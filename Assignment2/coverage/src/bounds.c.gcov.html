@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - coverage.info - src/bounds.c</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - bounds.c<span style="font-size: 80%;"> (source / <a href="bounds.c.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">38</td>
+            <td class="headerCovTableEntry">38</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-06-28 15:31:00</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : #include &lt;stdio.h&gt;</a>
+<span class="lineNum">       2 </span>            : #include &lt;stdlib.h&gt;
+<span class="lineNum">       3 </span>            : #include &lt;stdbool.h&gt;
+<span class="lineNum">       4 </span>            : #include &lt;math.h&gt;
+<span class="lineNum">       5 </span>            : #include &quot;bounds.h&quot;
+<span class="lineNum">       6 </span>            : #include &quot;geom.h&quot;
+<span class="lineNum">       7 </span>            : 
+<span class="lineNum">       8 </span>            : /*
+<span class="lineNum">       9 </span>            :  * Determine if one shape is contained by another where &quot;contained&quot;
+<span class="lineNum">      10 </span>            :  * means entirely within the bounds of the containing shape.
+<span class="lineNum">      11 </span>            :  * Return TRUE if INNER is contained within OUTER, FALSE otherwise.
+<span class="lineNum">      12 </span>            : */
+<span class="lineNum">      13 </span>            : 
+<span class="lineNum">      14 </span>            : /* Citation:
+<span class="lineNum">      15 </span>            :  Circle w/ Circle Code: Prof. Harrison Lecture 3/4 - July 23
+<span class="lineNum">      16 </span>            :  Dist between Point:    https://technotip.com/7339/c-program-to-calculate-distance-between-two-points/
+<span class="lineNum">      17 </span>            :  line intersect circle: http://csharphelper.com/blog/2014/09/determine-where-a-line-intersects-a-circle-in-c/
+<span class="lineNum">      18 </span>            :  Area of Triangle:      https://www.geeksforgeeks.org/check-whether-a-given-point-lies-inside-a-triangle-or-not/
+<span class="lineNum">      19 </span>            :  Intersecting Lines:    https://www.youtube.com/watch?v=A86COO8KC58
+<span class="lineNum">      20 </span>            :     https://github.com/bit101/CodingMath/blob/master/episode33/main_interactive.js
+<span class="lineNum">      21 </span>            : 
+<span class="lineNum">      22 </span>            :   Center of Polygon:    https://stackoverflow.com/questions/19766485/how-to-calculate-centroid-of-polygon-in-c
+<span class="lineNum">      23 </span>            :   Center of Triangle:   https://www.geeksforgeeks.org/program-to-find-the-centroid-of-the-triangle/
+<span class="lineNum">      24 </span>            : */
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<span class="lineNum">      26 </span>            : // Circle in Circle Test
+<span class="lineNum">      27 </span><span class="lineCov">          6 : static bool check_bounds_c_c(Circle *inner, Circle *outer) {</span>
+<span class="lineNum">      28 </span><span class="lineCov">          6 :   return (dist_2points( &amp;inner-&gt;center, &amp;outer-&gt;center) &lt;= outer-&gt;radius - inner-&gt;radius);</span>
+<span class="lineNum">      29 </span>            : }
+<a name="30"><span class="lineNum">      30 </span>            : </a>
+<span class="lineNum">      31 </span>            : // Circle in Triangle Test
+<span class="lineNum">      32 </span><span class="lineCov">          4 : static bool check_bounds_c_p(Circle *inner, Polygon *outer) {</span>
+<span class="lineNum">      33 </span>            : 
+<span class="lineNum">      34 </span>            :   // Check for intersections
+<span class="lineNum">      35 </span><span class="lineCov">          8 :   for (int i = 0; i &lt; outer-&gt;num_vertices-1; i++) {</span>
+<span class="lineNum">      36 </span><span class="lineCov">          6 :     if (line_intersects_circle (inner, &amp;outer-&gt;vertices[i], &amp;outer-&gt;vertices[i+1]) == true ) {</span>
+<span class="lineNum">      37 </span><span class="lineCov">          2 :       return false;</span>
+<span class="lineNum">      38 </span>            :     }
+<span class="lineNum">      39 </span>            :   }
+<span class="lineNum">      40 </span>            :   // Check if circle center is contained within Triangle area
+<span class="lineNum">      41 </span><span class="lineCov">          2 :   if (!point_Inside_Triangle(&amp;inner-&gt;center, &amp;outer-&gt;vertices[0], &amp;outer-&gt;vertices[1], &amp;outer-&gt;vertices[2])) {</span>
+<span class="lineNum">      42 </span><span class="lineCov">          1 :     return false;</span>
+<span class="lineNum">      43 </span>            :   }
+<span class="lineNum">      44 </span><span class="lineCov">          1 :   return true;</span>
+<span class="lineNum">      45 </span>            : }
+<span class="lineNum">      46 </span>            : 
+<a name="47"><span class="lineNum">      47 </span>            : // Triangle in Circle Test</a>
+<span class="lineNum">      48 </span>            : // Returns False if any triangles vertices is further than the radius from center of circle
+<span class="lineNum">      49 </span><span class="lineCov">          4 : static bool check_bounds_p_c(Polygon *inner, Circle *outer) {</span>
+<span class="lineNum">      50 </span><span class="lineCov">          7 :   for (int i = 0; i &lt; 3; i++) {</span>
+<span class="lineNum">      51 </span><span class="lineCov">          6 :     if (dist_2points( &amp;outer-&gt;center, &amp;inner-&gt;vertices[i]) &gt; outer-&gt;radius) {</span>
+<span class="lineNum">      52 </span><span class="lineCov">          3 :       return false;</span>
+<span class="lineNum">      53 </span>            :     }
+<span class="lineNum">      54 </span>            :   }
+<span class="lineNum">      55 </span><span class="lineCov">          1 :   return true;</span>
+<span class="lineNum">      56 </span>            : }
+<a name="57"><span class="lineNum">      57 </span>            : </a>
+<span class="lineNum">      58 </span>            : // Triangle in Polygon Test
+<span class="lineNum">      59 </span><span class="lineCov">          4 : static bool check_bounds_p_p(Polygon *inner, Polygon *outer) {</span>
+<span class="lineNum">      60 </span>            : 
+<span class="lineNum">      61 </span><span class="lineCov">          4 :   bool ret = true;</span>
+<span class="lineNum">      62 </span>            : 
+<span class="lineNum">      63 </span>            :   // return false if Triangle is Outside else assumed triangle inside : 
+<span class="lineNum">      64 </span>            :   // check if Centers of poly and triangle intesect edges of Polygon
+<span class="lineNum">      65 </span><span class="lineCov">         20 :   for (int i = 0; i &lt; outer-&gt;num_vertices-1; i++) {</span>
+<span class="lineNum">      66 </span><span class="lineCov">         16 :     Point* out = polygon_Center(outer);</span>
+<span class="lineNum">      67 </span><span class="lineCov">         16 :     Point* in = polygon_Center(inner);</span>
+<span class="lineNum">      68 </span>            : 
+<span class="lineNum">      69 </span><span class="lineCov">         16 :     if (segmentIntersect( out, in, &amp;outer-&gt;vertices[i], &amp;outer-&gt;vertices[i+1] )) {</span>
+<span class="lineNum">      70 </span><span class="lineCov">          2 :       ret = false;  //triangle outside</span>
+<span class="lineNum">      71 </span>            :     }
+<span class="lineNum">      72 </span><span class="lineCov">         16 :     free(out); free(in);</span>
+<span class="lineNum">      73 </span><span class="lineCov">         16 :     out = NULL; in = NULL;</span>
+<span class="lineNum">      74 </span>            :   }
+<span class="lineNum">      75 </span>            : 
+<span class="lineNum">      76 </span><span class="lineCov">          4 :   int contained = 0;</span>
+<span class="lineNum">      77 </span>            : 
+<span class="lineNum">      78 </span>            :   // Triangle surrounds pentagon Test
+<span class="lineNum">      79 </span>            :   // Pass vertexes into triangle area, all must be contained to pass
+<span class="lineNum">      80 </span><span class="lineCov">         24 :   for (int i = 0; i &lt; outer-&gt;num_vertices; i++) {</span>
+<span class="lineNum">      81 </span><span class="lineCov">         20 :     if (point_Inside_Triangle( &amp;outer-&gt;vertices[i], &amp;inner-&gt;vertices[0], &amp;inner-&gt;vertices[1], &amp;inner-&gt;vertices[2] )) {</span>
+<span class="lineNum">      82 </span><span class="lineCov">          3 :       contained++;</span>
+<span class="lineNum">      83 </span>            :     }
+<span class="lineNum">      84 </span>            :   }
+<span class="lineNum">      85 </span><span class="lineCov">          4 :   if (contained == 3) {</span>
+<span class="lineNum">      86 </span><span class="lineCov">          1 :     ret = false;</span>
+<span class="lineNum">      87 </span>            :   }
+<span class="lineNum">      88 </span>            : 
+<span class="lineNum">      89 </span><span class="lineCov">          4 :   return ret;</span>
+<span class="lineNum">      90 </span>            : }
+<a name="91"><span class="lineNum">      91 </span>            : </a>
+<span class="lineNum">      92 </span>            : // Main program
+<span class="lineNum">      93 </span><span class="lineCov">         18 : bool contained_by(Shape *inner, Shape *outer) {</span>
+<span class="lineNum">      94 </span><span class="lineCov">         18 :   if ((inner-&gt;type == CIRCLE) &amp;&amp; (outer-&gt;type == CIRCLE)) {</span>
+<span class="lineNum">      95 </span><span class="lineCov">          6 :     return (check_bounds_c_c((Circle*)inner, (Circle*)outer));</span>
+<span class="lineNum">      96 </span>            :   }
+<span class="lineNum">      97 </span>            : 
+<span class="lineNum">      98 </span><span class="lineCov">         12 :   else if ((inner-&gt;type == CIRCLE) &amp;&amp; (outer-&gt;type == POLYGON)) {</span>
+<span class="lineNum">      99 </span><span class="lineCov">          4 :     return (check_bounds_c_p((Circle*)inner, (Polygon*)outer));</span>
+<span class="lineNum">     100 </span>            :   }
+<span class="lineNum">     101 </span>            : 
+<span class="lineNum">     102 </span><span class="lineCov">          8 :   else if ((inner-&gt;type == POLYGON) &amp;&amp; (outer-&gt;type == CIRCLE)) {</span>
+<span class="lineNum">     103 </span><span class="lineCov">          4 :     return (check_bounds_p_c((Polygon*)inner, (Circle*)outer));</span>
+<span class="lineNum">     104 </span>            :   }
+<span class="lineNum">     105 </span>            : 
+<span class="lineNum">     106 </span>            :   else {
+<span class="lineNum">     107 </span><span class="lineCov">          4 :     return (check_bounds_p_p((Polygon*)inner, (Polygon*)outer));</span>
+<span class="lineNum">     108 </span>            :   }
+<span class="lineNum">     109 </span>            : 
+<span class="lineNum">     110 </span>            :   exit(-1);
+<span class="lineNum">     111 </span>            : }
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.12</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

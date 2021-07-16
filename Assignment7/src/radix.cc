@@ -20,6 +20,7 @@
 #include "radix.h"
 
 using namespace std;
+static int n;
 
 // Helper for LexNumbers
 bool Compare(string a, string b) {
@@ -38,15 +39,14 @@ void LexNumbers(vector<unsigned int> &list) {
   vector<unsigned int> sorted;
 
   // Convert to string
-  for (unsigned int i = 0; i < list.size(); i++) {
+  for (unsigned int i = 0; i < list.size(); i++)
     strList.push_back(to_string(list.at(i)));
-  }
 
   sort(strList.begin(), strList.end(), Compare);
 
-  for (unsigned int i = 0; i < list.size(); i++) {
+  for (unsigned int i = 0; i < list.size(); i++)
     sorted.push_back(stoull(strList.at(i)));
-  }
+
   list = sorted;
 }
 
@@ -55,70 +55,32 @@ void BucketSort(std::vector<unsigned int> &list) {
   
   std::vector<std::thread> SubListThread;
   vector<unsigned int> bucket[9];
-  vector<unsigned int> smallBucket[10];
-  vector<vector<unsigned int>> toSort;
   vector<unsigned int> sorted;
 
   // Put elements in different buckets
   for (auto elem : list) {
     unsigned int digit = elem;
-    while(digit >= 10) {
+    while(digit >= 10) 
       digit = digit/10;
-    }
+
     bucket[digit-1].push_back(elem);
   }
-  
-  // Calulate mean size of buckets
-  unsigned int buckMed = 0;
-  for (auto buck: bucket) {
-    buckMed += buck.size();
-  }
-  buckMed /= 9;
 
-  // Divide and Conquer (Uniform Distribution)
-  for (auto buck: bucket) {
-    if (buck.size() > buckMed) {
-      for (auto elem : buck) {
-        // Get the Second digit of the element
-        unsigned int d = elem;
-        while(d >= 100) {
-          d = d/10;
-        }
-        while (d >= 10) {
-          d -= 10;
-        }
-        smallBucket[d].push_back(elem);
-      }
-      for (smallB : smallBucket) {
-        toSort.push_back(smallB);
-      }
-      // Clear for next iteration
-      for (auto& clr : smallBucket) {
-        clr.clear();
-      }
-    }
-    else {
-      toSort.push_back(buck);
-    }
-  }
-
-  // Sort buckets in threads
-  for (std::vector<unsigned int> &digit : toSort) {
+  for (std::vector<unsigned int> &digit : bucket) 
     LexNumbers(digit);
-  }
-
-  for (unsigned int i = 0; i < toSort.size(); i++) {
-    for (unsigned int j = 0; j < toSort[i].size(); j++) {
-      sorted.push_back(toSort[i][j]);
-    }
-  }
+  
+  for (unsigned int i = 0; i < 9; i++)
+    for (unsigned int j = 0; j < bucket[i].size(); j++)
+      sorted.push_back(bucket[i][j]);
 
   list = sorted;
 }
 
-// UDP protocol
-// Packets can go missing
-// Packets can arrive out of order 
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// UDP protocol : Packets can go missing & can arrive out of order 
 void RadixServer::start(const int port) {
 
   int sockid = socket(AF_INET, SOCK_DGRAM, 0);   
@@ -134,14 +96,14 @@ void RadixServer::start(const int port) {
   struct sockaddr_in remote_addr;
   socklen_t len = sizeof(remote_addr);
 
-  // ==================================================================================
+  // =======================================================================
+
   vector<unsigned int> list;
-  // vector<message_t> datagrams;
   message_t DG;
-  int n;
 
   for (;;) {
-    n = recvfrom(sockid, (void*) &DG, sizeof(message_t), 0, (struct sockaddr *)&remote_addr, &len);
+    n = recvfrom(sockid, (void*) &DG, sizeof(message_t), 0, 
+      (struct sockaddr *)&remote_addr, &len);
     if (n < 0) exit (-1);
 
       unsigned int size;
@@ -201,8 +163,11 @@ void SetList(vector<unsigned int> &list, vector<unsigned int> &sorted){
   list = sorted;
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
 void RadixClient::msd(const char *hostname, const int port, 
-  std::vector<std::reference_wrapper<std::vector<unsigned int>>> &lists) { 
+  std::vector<std::reference_wrapper<std::vector<unsigned int>>> &lists) {
 
   int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   if (sockfd < 0) exit(-1);
@@ -219,89 +184,103 @@ void RadixClient::msd(const char *hostname, const int port,
   socklen_t len = sizeof(remote_addr);
 
 //==================================================
-
   vector<unsigned int> sorted;
-  vector<message_t> datagrams;
-  int check;
+  vector<message_t> DG_send;
 
-  //////////////////////////////////////////////////////////////////////////////////
-  // SEND DATAGRAMS TO SERVER
-  //////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////// SEND DATAGRAMS TO SERVER  ///////////////////////////
 
   for (std::vector<unsigned int> &list : lists) {
-    int seq = 0;  // Sequence for the current list if Server Requests Resends
-    unsigned int num_DG = ceil((float)list.size() / 128.0);
+    unsigned int seq = 0; // Sequence for current list if Server requests Resends
+    unsigned int num_DG = ceil((float)list.size() / (float)MAX_VALUES);
 
     // Make the DataGram(s) for this list
     for (unsigned int i = 0; i < num_DG; i++) {
-
       message_t DG;
       DG.sequence = htonl(seq++);
       unsigned int DG_start, DG_end;
 
-      // Last DG in List
-      if (i == (num_DG - 1)) {
-        DG.flag = htonl(1);
-        DG.num_values = htonl(list.size() - (128 * i));
+      if (i == (num_DG - 1)) {// Last DG in List
+        DG.flag = htonl(LAST);
+        DG.num_values = htonl(list.size() - (MAX_VALUES * i));
         DG_end = list.size();
       }
 
-      // Regular DG in List
-      else {
-        DG.flag = htonl(0);
-        DG.num_values = htonl(128);
-        DG_end = (i+1) * 128;
+      else {// Regular DG in List
+        DG.flag = htonl(NONE);
+        DG.num_values = htonl(MAX_VALUES);
+        DG_end = (i+1) * MAX_VALUES;
       }
 
       // Fill current DG
-      DG_start = i * 128;
+      DG_start = i * MAX_VALUES;
       unsigned int DG_index = 0;
       for (unsigned int j = DG_start; j < DG_end; j++) {
         unsigned int element = htonl(list.at(j));
         DG.values[DG_index++] = element;
       }
-      // Save datagram for resends : NOTE element DG == seq#
-      datagrams.push_back(DG);
+
+      // Save DG for resends : NOTE element DG == seq#
+      DG_send.push_back(DG);
 
       // Send DG
-      check = sendto(sockfd, (void *)& DG, sizeof(message_t), 0, 
+      n = sendto(sockfd, (void *)& DG, sizeof(message_t), 0, 
         (struct sockaddr *)&remote_addr, len);
-      if (check < 0) exit(-1);
+      if (n < 0) exit(-1);
     }
-    //////////////////////////////////////////////////////////////////////////////////
-    // RECEIVE DATAGRAMS FROM SERVER
-    //////////////////////////////////////////////////////////////////////////////////
+
+  ///////////////////////// RECEIVE DATAGRAMS FROM SERVER  ////////////////////////////////
+  
+    vector <message_t> messages(seq);       //Predefined a Vector Size
 
     for (;;) {
       message_t on_wire; 
-      check = recvfrom(sockfd, (void*)&on_wire, sizeof(message_t), 0, 
+      n = recvfrom(sockfd, (void*)&on_wire, sizeof(message_t), 0, 
         (struct sockaddr *)&remote_addr, &len);
-      if (check < 0) exit (-1);
+      if (n < 0) exit (-1);
 
-      message_t received = on_wire;
-      unsigned int size, flag, sequence;
-      size = ntohl(received.num_values);
-      flag = ntohl(received.flag);
-      sequence = ntohl(received.sequence);
-
-      for (unsigned int i = 0; i < size; i++) {
-        unsigned element = ntohl(received.values[i]);
-        sorted.push_back(element);
+      // Insert onwire into vector at position of sequence 
+      if (ntohl(on_wire.num_values) != 0) {// ignore fake lasts
+        messages[ntohl(on_wire.sequence)] = on_wire;
       }
-      if (flag == 1)    // End of list
-        break;
 
-      if (flag == 2) {  // Server Resends Datagram at the sequence requested in current list
-        check = sendto(sockfd, (void *)& datagrams.at(sequence), 
-          sizeof(message_t), 0, (struct sockaddr *)&remote_addr, len);
-        if (check < 0) exit(-1);
+      // Received Last 
+      if (ntohl(on_wire.flag) == LAST) {
+        for (unsigned int i = 0; i < messages.size(); i++) {
+          // If missing a sequence, send the resend message to server
+          if (ntohl(messages[i].sequence) != i) {
+            on_wire.values[0] = htonl(i); // Sequence to request
+            on_wire.num_values = htonl(1);
+            on_wire.sequence = htonl(0);
+            on_wire.flag = htonl(RESEND);
+            n = sendto(sockfd, (void *) &on_wire, sizeof(message_t), 0, 
+              (struct sockaddr *)&remote_addr, len);
+
+            for (;;) {
+              n = recvfrom(sockfd, (void*)&on_wire, sizeof(message_t), 0, 
+                (struct sockaddr *)&remote_addr, &len);
+              if (ntohl(on_wire.flag) == LAST) {
+                break;
+              }
+              messages[ntohl(on_wire.sequence)] = on_wire;
+            }
+          }
+        }    
+        break;
       }
     }
-    // END OF SEND AND RECEIVE FOR THE CURRENT LIST
-    SetList(list, sorted);
-    sorted.clear();       // Clear current sorted list
-    datagrams.clear();    // Clear current list DG Sequence
-  }
 
+    // loop the vector of messages putting their contents into the original list
+    for (auto msg : messages) {
+      for (unsigned int i = 0; i < ntohl(msg.num_values); i++) {
+        unsigned element = ntohl(msg.values[i]);
+        sorted.push_back(element);
+      }
+    }
+
+    // END OF SEND AND RECEIVE ON CURRENT LIST
+    SetList(list, sorted);
+    sorted.clear();     // Clear current sorted list
+    DG_send.clear();    // Clear current list DG Sequence
+  }
   close(sockfd);
 }

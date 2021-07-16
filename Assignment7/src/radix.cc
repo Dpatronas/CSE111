@@ -100,8 +100,8 @@ void RadixServer::start(const int port) {
 
   vector<unsigned int> list;
   message_t DG;
-  unsigned int checkSeq;
-  int resnd;
+  unsigned int checkSeq = 0;
+  int resnd = 0;
 
   for (;;) {
     n = recvfrom(sockid, (void*) &DG, sizeof(message_t), 0, 
@@ -148,7 +148,6 @@ void RadixServer::start(const int port) {
           }
         }
       }
-      
       BucketSort(list);
 
       DG.num_values = htonl(0); 

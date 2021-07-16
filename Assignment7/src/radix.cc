@@ -100,22 +100,55 @@ void RadixServer::start(const int port) {
 
   vector<unsigned int> list;
   message_t DG;
+  unsigned int checkSeq;
+  int resnd;
 
   for (;;) {
     n = recvfrom(sockid, (void*) &DG, sizeof(message_t), 0, 
       (struct sockaddr *)&remote_addr, &len);
-    if (n < 0) exit (-1);
+      if (n < 0) exit (-1);
 
-      unsigned int size;
-      size = htonl(DG.num_values);
+    unsigned int size;
+    size = htonl(DG.num_values);
 
-      for (unsigned int i = 0; i < size; i++) {
-        unsigned element = htonl(DG.values[i]);
-        list.push_back(element);
-      }
+    for (unsigned int i = 0; i < size; i++) {
+      unsigned element = htonl(DG.values[i]);
+      list.push_back(element);
+    }
+
+    if (htonl(DG.sequence) != checkSeq) {
+      resnd = checkSeq;
+      checkSeq++;
+    }
+    checkSeq++;
 
     // SORT AND SEND NUMBERS BACK TO CLIENT
     if (htonl(DG.flag) == LAST) { // Last DG
+
+      // Request Resends from Client
+      if (resnd > 0) {
+        DG.values[0]  = ntohl(resnd); // Sequence to request
+        DG.num_values = ntohl(1);
+        DG.sequence   = ntohl(0);
+        DG.flag       = ntohl(RESEND);
+
+        // Request resend to Client
+        n = sendto(sockid, (void *) &DG, sizeof(message_t), 0, 
+          (struct sockaddr *)&remote_addr, len);
+
+        for (;;) {
+        n = recvfrom(sockid, (void*) &DG, sizeof(message_t), 0, 
+          (struct sockaddr *)&remote_addr, &len);
+          if (htonl(DG.flag) == LAST) {  // Grab the fake last
+            break;
+          }
+          for (unsigned int i = 0; i < htonl(DG.num_values); i++) {
+            unsigned element = htonl(DG.values[i]);
+            list.push_back(element);
+          }
+        }
+      }
+      
       BucketSort(list);
 
       DG.num_values = htonl(0); 
@@ -152,7 +185,7 @@ void RadixServer::start(const int port) {
       DG.num_values = ntohl(0); 
       DG.sequence = ntohl(0); 
       DG.flag = ntohl(0);    
-
+      checkSeq = 0;
       list.clear();
     }
   }
@@ -238,17 +271,19 @@ void RadixClient::msd(const char *hostname, const int port,
         (struct sockaddr *)&remote_addr, &len);
       if (n < 0) exit (-1);
 
-      // Insert onwire into vector at position of sequence 
-      if (ntohl(on_wire.num_values) != 0) {// ignore fake lasts
+      // Insert onwire into the vector at the position of the sequence - ignore fake lasts
+      if (ntohl(on_wire.num_values) != 0) {
         messages[ntohl(on_wire.sequence)] = on_wire;
       }
 
-      // Received Last 
+      // Received the Last 
       if (ntohl(on_wire.flag) == LAST) {
+
         for (unsigned int i = 0; i < messages.size(); i++) {
           // If missing a sequence, send the resend message to server
           if (ntohl(messages[i].sequence) != i) {
             on_wire.values[0] = htonl(i); // Sequence to request
+
             on_wire.num_values = htonl(1);
             on_wire.sequence = htonl(0);
             on_wire.flag = htonl(RESEND);
@@ -268,7 +303,6 @@ void RadixClient::msd(const char *hostname, const int port,
         break;
       }
     }
-
     // loop the vector of messages putting their contents into the original list
     for (auto msg : messages) {
       for (unsigned int i = 0; i < ntohl(msg.num_values); i++) {

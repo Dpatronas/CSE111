@@ -273,7 +273,7 @@ void RadixClient::msd(const char *hostname, const int port,
     struct timeval tv;
 
     for (;;) {
-
+      FD_SET(sockfd, &readfds);
       tv.tv_sec = 1;
       int tryReceive = select(sockfd + 1, &readfds, NULL, NULL, &tv);
       message_t on_wire;
@@ -287,16 +287,7 @@ void RadixClient::msd(const char *hostname, const int port,
 
         n = sendto(sockfd, (void *) &on_wire, sizeof(message_t), 0, 
           (struct sockaddr *)&remote_addr, len);
-
-        for (;;) {
-          n = recvfrom(sockfd, (void*)&on_wire, sizeof(message_t), 0, 
-            (struct sockaddr *)&remote_addr, &len);
-          if (ntohl(on_wire.flag) == LAST) { //Receive the "fake last"
-            break;
-          }
-          messages[ntohl(on_wire.sequence)] = on_wire;
-        }
-        break;
+        continue;
       }
 
       n = recvfrom(sockfd, (void*)&on_wire, sizeof(message_t), 0, 
@@ -310,7 +301,6 @@ void RadixClient::msd(const char *hostname, const int port,
 
       // Received the Last 
       if (ntohl(on_wire.flag) == LAST) {
-
         for (unsigned int i = 0; i < messages.size(); i++) {
           // If missing a sequence, send the resend message to server
           if (ntohl(messages[i].sequence) != i) {

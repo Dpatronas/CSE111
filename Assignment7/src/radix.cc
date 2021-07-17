@@ -22,6 +22,10 @@
 using namespace std;
 static int n;
 
+// Citations:
+// Professor Harrison:
+// https://drive.google.com/drive/u/0/folders/1j38fDIem-sRltX_sjQl5jPeeRSinvxsk
+
 // Helper for LexNumbers
 bool Compare(string a, string b) {
   unsigned int i = 0, j = 0;
@@ -43,7 +47,6 @@ void LexNumbers(vector<unsigned int> &list) {
     strList.push_back(to_string(list.at(i)));
 
   sort(strList.begin(), strList.end(), Compare);
-
   for (unsigned int i = 0; i < list.size(); i++)
     sorted.push_back(stoull(strList.at(i)));
 
@@ -215,6 +218,10 @@ void RadixClient::msd(const char *hostname, const int port,
   remote_addr.sin_port = htons(port);
   socklen_t len = sizeof(remote_addr);
 
+  // Timeout set up?
+  fd_set readfds;
+  FD_SET(sockfd, &readfds);
+
 //==================================================
   vector<unsigned int> sorted;
   vector<message_t> DG_send;
@@ -263,9 +270,35 @@ void RadixClient::msd(const char *hostname, const int port,
   ///////////////////////// RECEIVE DATAGRAMS FROM SERVER  ////////////////////////////////
   
     vector <message_t> messages(seq);       //Predefined a Vector Size
+    struct timeval tv;
 
     for (;;) {
-      message_t on_wire; 
+
+      tv.tv_sec = 1;
+      int tryReceive = select(sockfd + 1, &readfds, NULL, NULL, &tv);
+      message_t on_wire;
+
+      // Last goes missing Resend to Server..
+      if (tryReceive == 0) {
+        on_wire.values[0] = htonl(seq-1); // Resend the last
+        on_wire.num_values = htonl(1);
+        on_wire.sequence = htonl(0);
+        on_wire.flag = htonl(RESEND);
+
+        n = sendto(sockfd, (void *) &on_wire, sizeof(message_t), 0, 
+          (struct sockaddr *)&remote_addr, len);
+
+        for (;;) {
+          n = recvfrom(sockfd, (void*)&on_wire, sizeof(message_t), 0, 
+            (struct sockaddr *)&remote_addr, &len);
+          if (ntohl(on_wire.flag) == LAST) { //Receive the "fake last"
+            break;
+          }
+          messages[ntohl(on_wire.sequence)] = on_wire;
+        }
+        break;
+      }
+
       n = recvfrom(sockfd, (void*)&on_wire, sizeof(message_t), 0, 
         (struct sockaddr *)&remote_addr, &len);
       if (n < 0) exit (-1);
@@ -302,6 +335,7 @@ void RadixClient::msd(const char *hostname, const int port,
         break;
       }
     }
+
     // loop the vector of messages putting their contents into the original list
     for (auto msg : messages) {
       for (unsigned int i = 0; i < ntohl(msg.num_values); i++) {

@@ -4,7 +4,7 @@
  * You may not use, distribute, publish, or modify this code without 
  * the express written permission of the copyright holder.
  */
-
+ 
 #include <iostream>
 #include <string>
 #include <bits/stdc++.h>
@@ -21,9 +21,16 @@
 #include "cracker.h"
 using namespace std;
 
-// Single server single threaded implementation
+//NOTES:
+  // Port to communicate between crackers
+  //   unsigned int betweenServers = get_unicast_port();
 
-// UDP Multicast Receiver
+// Citations:
+// Professor Harrison: https://drive.google.com/drive/u/0/folders/1j38fDIem-sRltX_sjQl5jPeeRSinvxsk
+
+// Single server embarassingly parallel implementation
+
+// Multicast Receiver to grab encrypted password message
 static void Receive(Message *msg) {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) { cout << "Socket failed to create"; exit(-1); }
@@ -42,11 +49,12 @@ static void Receive(Message *msg) {
 
     socklen_t len = sizeof(server_addr);
     recvfrom(sockfd, (void*) msg, sizeof(message_t), 0, (struct sockaddr *)&server_addr, &len);
-    cout << "Message for: " << msg->cruzid << endl;
+    // cout << "Message for: " << msg->cruzid << endl;
 
     close(sockfd);
 }
 
+// TCP Sender to send decrypted password message
 static void Send(Message *msg) {
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -59,7 +67,7 @@ static void Send(Message *msg) {
     bcopy((char *) server->h_addr, (char *)&server_addr.sin_addr.s_addr, server->h_length);
     server_addr.sin_port = msg->port;
 
-    if(connect(sockfd,(struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) 
+    if (connect(sockfd,(struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) 
         { cout << "Connect Unsuccessful" << endl; exit(-1); }
 
     int n = send(sockfd, (void *)msg, sizeof(message_t), 0);
@@ -68,16 +76,34 @@ static void Send(Message *msg) {
     close(sockfd);
 }
 
+void JoinThreads(std::vector<std::thread *> &Threads) {
+  for(auto& t: Threads) {
+      t->join();
+  }
+}
+
+// Iterate through passwrd hashes - replaces encrypted passwords with decrypted ones
 static void Decrypt(Message *msg) {
-    // Iterate through the password hashes ACCURATELY (check the size 16)
-    char hash[HASH_LENGTH+1];
-    cout << "Num Passwords = " << htonl(msg->num_passwds) << endl;
+    
+    vector <std::thread *> Threads;
+    vector <char *> hashes;
 
     for ( unsigned int i = 0; i < htonl(msg->num_passwds); i++ ) {
-        for (unsigned int j = 0; j < HASH_LENGTH+1; j++) {
-            hash[j] = msg->passwds[i][j];
-        }
-        crack(msg->alphabet, hash, msg->passwds[i]);
+        char* hash = (char *)malloc(HASH_LENGTH+1);
+        if (!hash) 
+            { cout << "Bad malloc" << endl; exit(-1); }
+            
+        hashes.push_back(hash);
+        memcpy(hash, msg->passwds[i], HASH_LENGTH+1);
+
+        std::thread * t = new std::thread(crack, msg->alphabet, hashes[i], msg->passwds[i]);
+        Threads.push_back(t);
+    }
+    JoinThreads(Threads);
+
+    for ( unsigned int i = 0; i < hashes.size(); i++ ) {
+        free(hashes[i]);
+        delete Threads[i];
     }
 }
 
@@ -88,8 +114,3 @@ int main(int argc, char *argv[]) {
   Decrypt(&msg);
   Send(&msg);
 }
-
-//NOTES:
-  // Port to communicate between crackers
-  //   unsigned int betweenServers = get_unicast_port();
-  
